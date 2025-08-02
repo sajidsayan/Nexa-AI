@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexa AI - Your AI Companion</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font for a clean look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .chat-container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            height: 90vh; /* Responsive height */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-header {
+            background: linear-gradient(to right, #6366f1, #8b5cf6); /* Purple gradient */
+            color: white;
+            padding: 1rem 1.5rem;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .chat-header h1 {
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            scroll-behavior: smooth;
+            background-color: #f9fafb; /* Lighter background for messages */
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 15px;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: #8b5cf6; /* Purple for user messages */
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background-color: #e2e8f0; /* Light gray for AI messages */
+            color: #334155; /* Darker text for AI */
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-image {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-top: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-input-area {
+            padding: 1rem 1.5rem;
+            background-color: #ffffff;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+
+        .chat-input {
+            flex-grow: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            outline: none;
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out;
+        }
+
+        .chat-input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Adjusted styling for small, icon-only buttons */
+        .action-button {
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 50%; /* Make them circular */
+            width: 44px; /* Fixed width for small button */
+            height: 44px; /* Fixed height for small button */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem; /* Icon size */
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0; /* Prevent shrinking on smaller screens */
+        }
+
+        .action-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Send button remains rectangular */
+        .send-button {
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        .send-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6b7280;
+            font-style: italic;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 95vh;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            .chat-header {
+                border-radius: 0;
+            }
+            .chat-input-area {
+                flex-direction: column;
+                padding: 1rem;
+                gap: 0.5rem;
+            }
+            .chat-input {
+                width: 100%;
+            }
+            .action-buttons-container {
+                flex-direction: row; /* Keep row for small buttons on mobile */
+                flex-wrap: wrap; /* Allow wrapping if too many buttons */
+                justify-content: center;
+                width: 100%;
+                gap: 0.5rem; /* Smaller gap for small buttons */
+            }
+            .send-button {
+                width: 100%; /* Send button takes full width on mobile */
+                margin-top: 0.5rem; /* Add some margin above send button */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>Nexa AI</h1>
+            <i class="fas fa-robot text-2xl"></i>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages will be appended here -->
+            <div class="ai-message message-bubble">
+                Hello! I'm Nexa AI, your personal assistant. How can I help you today?
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="user-input" class="chat-input" placeholder="Type your message...">
+            <div class="action-buttons-container flex flex-row gap-2">
+                <label for="image-upload" class="action-button cursor-pointer" title="Send Image">
+                    <i class="fas fa-image"></i>
+                    <input type="file" id="image-upload" accept="image/*" class="hidden">
+                </label>
+                <button id="generate-image-button" class="action-button" title="Generate Image">
+                    <i class="fas fa-palette"></i>
+                </button>
+                <label for="code-file-upload" class="action-button cursor-pointer" title="Read Code File">
+                    <i class="fas fa-code"></i>
+                    <input type="file" id="code-file-upload" accept=".js,.py,.html,.css,.json,.txt" class="hidden">
+                </label>
+                <button id="make-website-button" class="action-button" title="Make Website">
+                    <i class="fas fa-globe"></i>
+                </button>
+                <button id="send-button" class="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                    <span class="hidden sm:inline">Send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase imports - essential for Canvas environment, even if not directly used for persistence in this example
+        // These are global variables provided by the Canvas environment.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Import necessary Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // Firestore is imported for completeness, though not actively used for data persistence in this specific example
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Initialize Firebase
+        let app;
+        let db;
+        let auth;
+        let userId = 'anonymous'; // Default to anonymous until authenticated
+
+        async function initializeFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Sign in with custom token if available, otherwise anonymously
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Listen for auth state changes to get the user ID
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("Firebase Authenticated. User ID:", userId);
+                    } else {
+                        userId = crypto.randomUUID(); // Fallback for unauthenticated/anonymous
+                        console.log("Firebase not authenticated. Using random UUID:", userId);
+                    }
+                });
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                // Fallback to a random UUID if Firebase init fails
+                userId = crypto.randomUUID();
+            }
+        }
+
+        // Call Firebase initialization
+        initializeFirebase();
+
+        // --- UI Elements ---
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const imageUpload = document.getElementById('image-upload');
+        const generateImageButton = document.getElementById('generate-image-button');
+        const codeFileUpload = document.getElementById('code-file-upload');
+        const makeWebsiteButton = document.getElementById('make-website-button'); // New button reference
+
+        // --- API Configuration ---
+        const GEMINI_API_KEY = ""; // Canvas will provide this at runtime
+        const TEXT_MODEL_NAME = "gemini-2.5-flash-preview-05-20";
+        const IMAGE_GENERATION_MODEL_NAME = "imagen-3.0-generate-002"; // Preferred for image generation
+
+        // --- Utility Functions ---
+
+        /**
+         * Appends a message to the chat display.
+         * @param {string} text - The message text.
+         * @param {string} sender - 'user' or 'ai'.
+         * @param {string} [imageUrl=null] - Optional URL for an image to display.
+         */
+        function appendMessage(text, sender, imageUrl = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message-bubble', sender === 'user' ? 'user-message' : 'ai-message');
+
+            const textNode = document.createElement('p');
+            textNode.textContent = text;
+            messageDiv.appendChild(textNode);
+
+            if (imageUrl) {
+                const imgElement = document.createElement('img');
+                imgElement.src = imageUrl;
+                imgElement.classList.add('message-image');
+                imgElement.alt = sender === 'user' ? 'User uploaded image' : 'Generated image';
+                // Add error handling for image loading
+                imgElement.onerror = () => {
+                    imgElement.src = `https://placehold.co/200x150/cccccc/333333?text=Image+Load+Error`;
+                    imgElement.alt = "Image failed to load";
+                };
+                messageDiv.appendChild(imgElement);
+            }
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+        }
+
+        /**
+         * Displays a temporary loading indicator.
+         * @returns {HTMLDivElement} The loading indicator element.
+         */
+        function showLoadingIndicator() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.classList.add('loading-indicator', 'ai-message', 'message-bubble');
+            loadingDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Thinking...`;
+            chatMessages.appendChild(loadingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return loadingDiv;
+        }
+
+        /**
+         * Removes a loading indicator from the chat.
+         * @param {HTMLDivElement} indicator - The loading indicator element to remove.
+         */
+        function hideLoadingIndicator(indicator) {
+            if (indicator && indicator.parentNode) {
+                indicator.parentNode.removeChild(indicator);
+            }
+        }
+
+        /**
+         * Converts a File object to a Base64 string.
+         * @param {File} file - The file to convert.
+         * @returns {Promise<string>} A promise that resolves with the Base64 string.
+         */
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]); // Get base64 data part
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        /**
+         * Handles API calls with exponential backoff.
+         * @param {Function} apiCall - The function that performs the API call.
+         * @param {Array} args - Arguments to pass to the apiCall function.
+         * @param {number} retries - Number of retries.
+         * @param {number} delay - Initial delay in ms.
+         * @returns {Promise<any>} The result of the API call.
+         */
+        async function callApiWithBackoff(apiCall, args, retries = 3, delay = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    return await apiCall(...args);
+                } catch (error) {
+                    if (error.status === 429 && i < retries - 1) { // Too Many Requests
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2; // Exponential backoff
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+            throw new Error("Max retries exceeded for API call.");
+        }
+
+        // --- API Call Functions ---
+
+        /**
+         * Sends a text message to the Gemini API and appends the response.
+         * @param {string} prompt - The user's text prompt.
+         */
+        async function sendTextMessage(prompt) {
+            appendMessage(prompt, 'user');
+            userInput.value = ''; // Clear input immediately
+            const loadingIndicator = showLoadingIndicator();
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${TEXT_MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
+
+                const response = await callApiWithBackoff(fetch, [apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }]);
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    appendMessage(text, 'ai');
+                } else {
+                    appendMessage("Sorry, I couldn't get a response. Please try again.", 'ai');
+                    console.error("Unexpected API response structure:", result);
+                }
+            } catch (error) {
+                console.error("Error sending text message:", error);
+                appendMessage("An error occurred while processing your request. Please try again.", 'ai');
+            } finally {
+                hideLoadingIndicator(loadingIndicator);
+            }
+        }
+
+        /**
+         * Sends an image to the Gemini API for understanding and appends the response.
+         * @param {File} imageFile - The image file to send.
+         */
+        async function sendImageMessage(imageFile) {
+            appendMessage("Analyzing your image...", 'user', URL.createObjectURL(imageFile)); // Display user's image
+            const loadingIndicator = showLoadingIndicator();
+
+            try {
+                const base64ImageData = await fileToBase64(imageFile);
+                const prompt = "Describe this image in detail and tell me what you see.";
+
+                const payload = {
+                    contents: [
+                        {
+                            role: "user",
+                            parts: [
+                                { text: prompt },
+                                {
+                                    inlineData: {
+                                        mimeType: imageFile.type,
+                                        data: base64ImageData
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${TEXT_MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
+
+                const response = await callApiWithBackoff(fetch, [apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }]);
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    appendMessage(text, 'ai');
+                } else {
+                    appendMessage("Sorry, I couldn't analyze the image. Please try again.", 'ai');
+                    console.error("Unexpected API response structure for image:", result);
+                }
+            } catch (error) {
+                console.error("Error sending image message:", error);
+                appendMessage("An error occurred while analyzing your image. Please try again.", 'ai');
+            } finally {
+                hideLoadingIndicator(loadingIndicator);
+            }
+        }
+
+        /**
+         * Generates an image based on a user prompt using `imagen-3.0-generate-002`.
+         * Prompts the user for the image description.
+         */
+        async function generateImage() {
+            const imagePrompt = prompt("What kind of image would you like to generate?");
+            if (!imagePrompt) {
+                return; // User cancelled
+            }
+
+            appendMessage(`Generating an image: "${imagePrompt}"`, 'user');
+            const loadingIndicator = showLoadingIndicator();
+
+            try {
+                const payload = { instances: { prompt: imagePrompt }, parameters: { "sampleCount": 1} };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_GENERATION_MODEL_NAME}:predict?key=${GEMINI_API_KEY}`;
+
+                const response = await callApiWithBackoff(fetch, [apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }]);
+
+                const result = await response.json();
+
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    appendMessage("Here's your generated image:", 'ai', imageUrl);
+                } else {
+                    appendMessage("Sorry, I couldn't generate an image. Please try a different prompt.", 'ai');
+                    console.error("Unexpected image generation API response structure:", result);
+                }
+            } catch (error) {
+                console.error("Error generating image:", error);
+                appendMessage("An error occurred while generating the image. Please try again.", 'ai');
+            } finally {
+                hideLoadingIndicator(loadingIndicator);
+            }
+        }
+
+        /**
+         * Reads a file and displays its content in the chat.
+         * Note: This only reads and displays the file content.
+         * Actual "making for coding" (e.g., code analysis, execution) would require
+         * more advanced backend processing or a specialized client-side library.
+         * @param {File} file - The file to read.
+         */
+        async function readFileContent(file) {
+            appendMessage(`Reading file: "${file.name}"...`, 'user');
+            const loadingIndicator = showLoadingIndicator();
+
+            try {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    appendMessage(`Content of "${file.name}":\n\`\`\`\n${content.substring(0, 500)}...\n\`\`\``, 'ai'); // Show first 500 chars
+                    appendMessage("Note: For full code analysis or execution, a more robust backend integration would be required.", 'ai');
+                };
+                reader.onerror = (error) => {
+                    console.error("Error reading file:", error);
+                    appendMessage(`Could not read file "${file.name}".`, 'ai');
+                };
+                reader.readAsText(file);
+            } catch (error) {
+                console.error("Error initiating file read:", error);
+                appendMessage("An error occurred while trying to read the file.", 'ai');
+            } finally {
+                hideLoadingIndicator(loadingIndicator);
+            }
+        }
+
+        /**
+         * Generates a simple website based on user input.
+         */
+        async function makeWebsite() {
+            const websitePrompt = prompt("What kind of website would you like to create? (e.g., 'a simple portfolio page', 'a blog with a dark theme')");
+            if (!websitePrompt) {
+                return; // User cancelled
+            }
+
+            appendMessage(`Generating a website based on: "${websitePrompt}"`, 'user');
+            const loadingIndicator = showLoadingIndicator();
+
+            try {
+                const promptText = `Generate a complete, single-file HTML website (including CSS and JavaScript within <style> and <script> tags) for the following description: "${websitePrompt}". Make it simple and clean.`;
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: promptText }] });
+                const payload = { contents: chatHistory };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${TEXT_MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
+
+                const response = await callApiWithBackoff(fetch, [apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }]);
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const generatedCode = result.candidates[0].content.parts[0].text;
+                    appendMessage(`Here's the HTML code for your website:\n\`\`\`html\n${generatedCode}\n\`\`\`\n\nYou can copy this code and save it as an \`.html\` file to view your website.`, 'ai');
+                } else {
+                    appendMessage("Sorry, I couldn't generate the website code. Please try a different description.", 'ai');
+                    console.error("Unexpected API response structure for website generation:", result);
+                }
+            } catch (error) {
+                console.error("Error generating website:", error);
+                appendMessage("An error occurred while generating the website. Please try again.", 'ai');
+            } finally {
+                hideLoadingIndicator(loadingIndicator);
+            }
+        }
+
+        // --- Event Listeners ---
+
+        sendButton.addEventListener('click', () => {
+            const prompt = userInput.value.trim();
+            if (prompt) {
+                sendTextMessage(prompt);
+            }
+        });
+
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                sendImageMessage(file);
+            }
+            e.target.value = ''; // Clear input to allow re-uploading the same file
+        });
+
+        generateImageButton.addEventListener('click', () => {
+            generateImage();
+        });
+
+        codeFileUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                readFileContent(file);
+            }
+            e.target.value = ''; // Clear input
+        });
+
+        makeWebsiteButton.addEventListener('click', () => {
+            makeWebsite();
+        });
+
+        // Initial welcome message (already in HTML, but can be added dynamically)
+        // appendMessage("Hello! I'm Nexa AI, your personal assistant. How can I help you today?", 'ai');
+    </script>
+</body>
+</html>
